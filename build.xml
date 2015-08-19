@@ -20,7 +20,7 @@
         <!--<phingCall target="prepare" /> -->
         <phingCall target="phpunit" /> 
        <!-- <phingCall target="pdepend" /> -->
-        <phingCall target="phpmd" />
+        <!--<phingCall target="phpmd" />-->
         <phingCall target="phpcpd" />
         <!--<phingCall target="phpdoc" />-->
         <!--<phingCall target="docblox" />-->
