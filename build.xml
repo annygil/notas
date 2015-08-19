@@ -17,16 +17,16 @@
     <target name="main" description="Start analyzing our application">
         <echo msg="Start Build" />
         
-        <phingCall target="prepare" />
-        <phingCall target="phpunit" />
-        <phingCall target="pdepend" />
-        <phingCall target="phpmd" />
-        <phingCall target="phpcpd" />
-        <phingCall target="phpdoc" />
-        <phingCall target="docblox" />
-        <phingCall target="phpcs" />
-        <phingCall target="phploc" />
-        <phingCall target="phpcb" />
+        <!--<phingCall target="prepare" /> -->
+        <phingCall target="phpunit" /> 
+       <!-- <phingCall target="pdepend" /> -->
+       <!-- <phingCall target="phpmd" />-->
+        <!--<phingCall target="phpcpd" />-->
+        <!--<phingCall target="phpdoc" />-->
+        <!--<phingCall target="docblox" />-->
+        <!--<phingCall target="phpcs" />-->
+        <!--<phingCall target="phploc" />-->
+        <!--<phingCall target="phpcb" />-->
         
         <echo msg="Finished Build" />
     </target>
