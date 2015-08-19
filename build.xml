@@ -17,7 +17,7 @@
     <target name="main" description="Start analyzing our application">
         <echo msg="Start Build" />
         
-        <!--<phingCall target="prepare" /> -->
+        <phingCall target="prepare" /> 
         <phingCall target="phpunit" /> 
        <!-- <phingCall target="pdepend" /> -->
         <!--<phingCall target="phpmd" />-->
