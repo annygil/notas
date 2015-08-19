@@ -21,7 +21,7 @@
         <phingCall target="phpunit" /> 
        <!-- <phingCall target="pdepend" /> -->
         <!--<phingCall target="phpmd" />-->
-        <phingCall target="phpcpd" />
+        <!--<phingCall target="phpcpd" />-->
         <!--<phingCall target="phpdoc" />-->
         <!--<phingCall target="docblox" />-->
         <!--<phingCall target="phpcs" />-->
