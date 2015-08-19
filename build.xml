@@ -26,6 +26,7 @@
         <!--<phingCall target="docblox" />-->
         <!--<phingCall target="phpcs" />-->
        <phingCall target="phploc" />
+       <phingCall target="coverage-clover">
         <!--<phingCall target="phpcb" />-->
         
         <echo msg="Finished Build" />
@@ -151,5 +152,21 @@
               --source ${source}
               --output ${builddir}/code-browser" />
     </target>   
+
+    <!-- ============================================  -->
+    <!-- Target: PHP COVARAGE-CLOVER            -->
+    <!-- ============================================  -->
     
+
+    <target name="coverage-clover" description="covarge clover">
+        <exec dir="."
+              command="phpunit --log-junit 'reports/unitreport.xml'
+                               --coverage-html 'reports/coverage'
+                               --coverage-clover 'reports/coverage/coverage.xml'
+                               test/"
+        />
+
+    
+    </target>  
+
 </project>
