@@ -26,7 +26,7 @@
         <!--<phingCall target="docblox" />-->
         <!--<phingCall target="phpcs" />-->
        <phingCall target="phploc" />
-       <phingCall target="coverage-clover">
+       <phingCall target="coverage-clover"/>
         <!--<phingCall target="phpcb" />-->
         
         <echo msg="Finished Build" />
