@@ -15,22 +15,6 @@
         </delete>
     </target>
 
-    <target name="composer" description="Install dependencies with Composer">
-
-        <delete>
-            <fileset dir="${basedir}">
-                <include name="composer.phar" />
-                <date datetime="${thirty.days.ago}" when="before"/>
-            </fileset>
-        </delete>
-
-        <get src="https://getcomposer.org/composer.phar" dest="${basedir}/composer.phar" skipexisting="true"/>
-
-        <exec executable="php">
-            <arg value="composer.phar"/>
-            <arg value="install"/>
-        </exec>
-    </target>
 
     <target name="signed-phar"
             description="Create signed PHAR archive of PHPUnit and all its dependencies (release)"
