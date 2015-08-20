@@ -8,7 +8,7 @@
     <fileset id="php-files" dir="${project.basedir}">
         <include name="**/*.php"/>
         <exclude name="library/Zend/**"/>
-        <exclude name="tests/**"/>
+        <include name="tests/**"/>
     </fileset>
         
     <!-- ============================================  -->
