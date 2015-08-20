@@ -26,7 +26,7 @@
         <!--<phingCall target="docblox" />-->
         <!--<phingCall target="phpcs" />-->
        <phingCall target="phploc" />
-       <phingCall target="coverage-clover"/>
+       <!--<phingCall target="coverage-clover"/>-->
         <!--<phingCall target="phpcb" />-->
         
         <echo msg="Finished Build" />
@@ -57,13 +57,26 @@
     <!-- ============================================  -->
     <target name="phpunit" description="Run unit tests using PHPUnit and generates junit.xml and clover.xml">
         <echo msg="Beginning of the tests" />
-        <exec command="phpunit --bootstrap=${testdir}/bootstrap.php 
-                             --configuration phpunit.xml 
-                             --log-junit ${builddir}/logs/junit.xml 
-                             --coverage-clover ${builddir}/logs/clover.xml 
-                             --coverage-html ${builddir}/coverage/ 
-                             ${testdir}"
-            />
+ <phpunit backupGlobals="false"
+         backupStaticAttributes="false"
+         bootstrap="bootstrap/autoload.php"
+         colors="true"
+         convertErrorsToExceptions="true"
+         convertNoticesToExceptions="true"
+         convertWarningsToExceptions="true"
+         processIsolation="false"
+         stopOnFailure="false"
+         syntaxCheck="false">
+    <testsuites>
+        <testsuite name="Application Test Suite">
+            <directory>./tests/</directory>
+        </testsuite>
+    </testsuites>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="CACHE_DRIVER" value="array"/>
+        <env name="SESSION_DRIVER" value="array"/>
+    </php>
     </target>
     
     <!-- ============================================  -->
