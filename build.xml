@@ -15,6 +15,14 @@
         </delete>
     </target>
 
+    <target name="composer" description="Install dependencies with Composer">
+
+
+        <exec executable="php">
+            <arg value="composer.phar"/>
+            <arg value="install"/>
+        </exec>
+    </target>
 
     <target name="signed-phar"
             description="Create signed PHAR archive of PHPUnit and all its dependencies (release)"
