@@ -1,186 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="My Project" basedir="." default="main">
-    
-    <property name="builddir" value="build" />
-    <property name="source" value="library/MyLibrary" />
-    <property name="testdir" value="tests" />
-     
-    <fileset id="php-files" dir="${project.basedir}">
-        <include name="**/*.php"/>
-        <exclude name="library/Zend/**"/>
-        <include name="tests/**"/>
-    </fileset>
-        
-    <!-- ============================================  -->
-    <!-- (DEFAULT) Target: main                        -->
-    <!-- ============================================  -->
-    <target name="main" description="Start analyzing our application">
-        <echo msg="Start Build" />
-        
-        <phingCall target="prepare" /> 
-        <phingCall target="phpunit" /> 
-       <!-- <phingCall target="pdepend" /> -->
-        <!--<phingCall target="phpmd" />-->
-        <!--<phingCall target="phpcpd" />-->
-        <!--<phingCall target="phpdoc" />-->
-        <!--<phingCall target="docblox" />-->
-        <!--<phingCall target="phpcs" />-->
-       <phingCall target="phploc" />
-       <!--<phingCall target="coverage-clover"/>-->
-        <!--<phingCall target="phpcb" />-->
-        
-        <echo msg="Finished Build" />
+<project name="jenkins-php" default="build" basedir=".">
+    <property name="basedir" value="${project.basedir}" />
+    <property name="source" value="${basedir}/src" />
+    <!-- # of threads to execute parallel tasks -->
+    <property name="threads" value="4"/>
+    <target name="clean" description="Clean up and create artifact directories">
+        <delete dir="${basedir}/build/api" />
+        <delete dir="${basedir}/build/code-browser" />
+        <delete dir="${basedir}/build/coverage" />
+        <delete dir="${basedir}/build/logs" />
+        <delete dir="${basedir}/build/pdepend" />
+
+        <mkdir dir="${basedir}/build/api" />
+        <mkdir dir="${basedir}/build/code-browser" />
+        <mkdir dir="${basedir}/build/coverage" />
+        <mkdir dir="${basedir}/build/logs" />
+        <mkdir dir="${basedir}/build/pdepend" />
     </target>
-    
-    <!-- ============================================  -->
-    <!-- (DEFAULT) Target: prepare                     -->
-    <!-- ============================================  -->
-    <target name="prepare" >
-        <echo msg="Making directory build" />
-        
-        <delete dir="${builddir}/api" includeemptydirs="true" verbose="true" failonerror="true" />
-        <delete dir="${builddir}/code-browser" includeemptydirs="true" verbose="true" failonerror="true" />
-        <delete dir="${builddir}/coverage" includeemptydirs="true" verbose="true" failonerror="true" />
-        <delete dir="${builddir}/logs" includeemptydirs="true" verbose="true" failonerror="true" />
-        <delete dir="${builddir}/pdepend" includeemptydirs="true" verbose="true" failonerror="true" />
-       
-        <mkdir dir="${builddir}/api"/>
-        <mkdir dir="${builddir}/api/docblox"/>
-        <mkdir dir="${builddir}/code-browser"/>
-        <mkdir dir="${builddir}/coverage"/>
-        <mkdir dir="${builddir}/logs"/>
-        <mkdir dir="${builddir}/pdepend"/>        
-    </target>
-                
-    <!-- ============================================  -->
-    <!-- Target: Unit test                             -->
-    <!-- ============================================  -->
+
     <target name="phpunit" description="Run unit tests using PHPUnit and generates junit.xml and clover.xml">
-        <echo msg="Beginning of the tests" />
- <phpunit backupGlobals="false"
-         backupStaticAttributes="false"
-         bootstrap="bootstrap/autoload.php"
-         colors="true"
-         convertErrorsToExceptions="true"
-         convertNoticesToExceptions="true"
-         convertWarningsToExceptions="true"
-         processIsolation="false"
-         stopOnFailure="false"
-         syntaxCheck="false">
-    <testsuites>
-        <testsuite name="Application Test Suite">
-            <directory>./tests/</directory>
-        </testsuite>
-    </testsuites>
-    <php>
-        <env name="APP_ENV" value="testing"/>
-        <env name="CACHE_DRIVER" value="array"/>
-        <env name="SESSION_DRIVER" value="array"/>
-    </php>
-    </phpunit>
+        <exec logoutput="true" command="phpunit --configuration=phpunit.xml.dist" />
     </target>
-    
-    <!-- ============================================  -->
-    <!-- Target: PHP Depend                            -->
-    <!-- ============================================  -->
-    <target name="pdepend" description="Calculate dependencies of the code base">
-        <exec command="pdepend --jdepend-xml=${builddir}/logs/jdepend.xml 
-                               --jdepend-chart=${builddir}/pdepend/dependencies.svg 
-                               --overview-pyramid=${builddir}/pdepend/overview-pyramid.svg 
-                               --suffix=php
-                               --ignore=library/Zend,tests
-                               ${source}" 
-              escape="false" />
+
+    <target name="run_parallel_tasks">
+        <parallel threadCount="${threads}">
+            <phingcall target="tasks_to_try" /> 
+        </parallel>     
     </target>
-    
-    <!-- ============================================  -->
-    <!-- Target: PHPMD (Project Mess Detector)         -->
-    <!-- ============================================  -->
+    <target name="run_serial_tasks">
+        <phingcall target="tasks_to_try" />
+    </target>
+    <target name="tasks_to_try">
+        <phingcall target="pdepend" />
+        <phingcall target="phpmd" />
+ 
+        <phingcall target="phploc" />
+    </target>
+    <target name="try_ParallelTasks" description="Run the pdepend, phpmd, phpcpd, phpcs, phpdoc and phploc tasks. Checks for parallel support in PHP.">
+        <exec command="php -m | grep pcntl" returnProperty="pcntl_enabled"/>
+        <if>
+            <equals arg1="${pcntl_enabled}" arg2="pcntl" />
+            <then>
+                <echo message="PCNTL Enabled. Running Taks in parallel with ${threads} threads." />
+                <phingcall target="run_parallel_tasks"/>
+            </then>
+            <else>
+                <echo message="PCNTL is not enabled. Running task serially." />
+                <phingcall target="run_serial_tasks"/>
+            </else>
+        </if>
+    </target>
+    <target name="pdepend" description="Generate jdepend.xml and software metrics charts using PHP_Depend">
+        <exec logoutput="true" command="pdepend --jdepend-xml=${basedir}/build/logs/jdepend.xml --jdepend-chart=${basedir}/build/pdepend/dependencies.svg --overview-pyramid=${basedir}/build/pdepend/overview-pyramid.svg ${source}" />
+    </target>
+
     <target name="phpmd" description="Generate pmd.xml using PHPMD">
-        <phpmd>
-            <fileset refid="php-files"/>
-            <formatter type="xml" outfile="${builddir}/logs/pmd.xml"/>
-        </phpmd>
-    </target>  
+        <exec logoutput="true" spawn="true" command="phpmd ${source} xml codesize,design,naming,unusedcode --reportfile ${basedir}/build/logs/pmd.xml" />
+    </target>
 
-    <!-- ============================================  -->
-    <!-- Target: PHPCPD (Copy/Paste Detector)          -->
-    <!-- ============================================  -->
-    <target name="phpcpd" description="Copy/Paste Detection">
-        <phpcpd>
-            <fileset refid="php-files"/>
-            <formatter type="pmd" outfile="${builddir}/logs/pmd-cpd.xml"/>
-        </phpcpd>
+    <target name="phpcpd" description="Generate pmd-cpd.xml using PHPCPD">
+        <exec logoutput="true" command="phpcpd --log-pmd ${basedir}/build/logs/pmd-cpd.xml ${source}" />
     </target>
-    
-    <!-- ============================================  -->
-    <!-- Target: PHPCS (PHP Code Sniffer)              -->
-    <!-- ============================================  -->
-    <target name="phpcs" description="Coding Standards Analysis">
-        <exec command="phpcs --standard=MyZend 
-                             --report=checkstyle 
-                             --report-file=${builddir}/logs/checkstyle.xml
-                             --ignore=library/Zend,tests,docs,scripts
-                             --extensions=php
-                             ${source}" 
-              escape="false" />
-    </target>
-      
-    <!-- ============================================  -->
-    <!-- Target: PHPDoc                                -->
-    <!-- ============================================  -->
-    <target name="phpdoc" description="Generate API documentation using PHPDocumentor">
-        <phpdoc title="${project.name} API Documentation"
-              destdir="${builddir}/api"
-              sourcecode="false"
-              output="HTML:Smarty:PHP"
-              quiet="true">
-            <fileset refid="php-files"/>
-        </phpdoc>
-    </target>
-    
-    <!-- ============================================  -->
-    <!-- Target: Docblox                               -->
-    <!-- ============================================  -->
-    <target name="docblox" description="Generate API documentation with DocBlox">
-        <docblox 
-            title="${project.name} API Documentation"
-            destdir="${builddir}/api/docblox">
-            <fileset refid="php-files"/>
-        </docblox>
-    </target>
-    
-    <!-- ============================================  -->
-    <!-- Target: PHPLoc (PHP Lines of Code)              -->
-    <!-- ============================================  -->
+
     <target name="phploc" description="Generate phploc.csv">
-        <exec command="phploc --log-csv ${builddir}/logs/phploc.csv ${source} " />
+        <exec logoutput="true" command="phploc --log-csv ${basedir}/build/logs/phploc.csv ${source}" />
     </target>
-    
-    <!-- ============================================  -->
-    <!-- Target: PHPCB (PHP Code Browser)              -->
-    <!-- ============================================  -->
+
+    <target name="phpcs" description="Generate checkstyle.xml using PHP_CodeSniffer">
+        <exec logoutput="true" command="phpcs --report=checkstyle --report-file=${basedir}/build/logs/checkstyle.xml --standard=PEAR ${source}" />
+    </target>
+
+    <target name="phpdoc" description="Generate API documentation using PHPDocumentor">
+        <exec logoutput="true" command="phpdoc -d ${source} -t ${basedir}/build/api" />
+    </target>
+
     <target name="phpcb" description="Aggregate tool output with PHP_CodeBrowser">
-        <exec command="phpcb --log    ${builddir}/logs
-              --ignore build,library/Zend,tests,docs
-              --source ${source}
-              --output ${builddir}/code-browser" />
-    </target>   
+        <exec logoutput="true" command="phpcb --log ${basedir}/build/logs --source ${source} --output ${basedir}/build/code-browser" />
+    </target>
 
-    <!-- ============================================  -->
-    <!-- Target: PHP COVARAGE-CLOVER            -->
-    <!-- ============================================  -->
-    
-
-    <target name="coverage-clover" description="covarge clover">
-        <exec dir="."
-              command="phpunit --log-junit 'reports/unitreport.xml'
-                               --coverage-html 'reports/coverage'
-                               --coverage-clover 'reports/coverage/coverage.xml'
-                               test/"
-        />
-
-    
-    </target>  
+    <target name="build" depends="clean,try_ParallelTasks,phpunit,phpcb" />
 
 </project>
