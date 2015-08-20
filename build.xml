@@ -16,9 +16,7 @@
     </target>
 
     <target name="composer" description="Install dependencies with Composer">
-        <tstamp>
-            <format property="thirty.days.ago" pattern="MM/dd/yyyy hh:mm aa" offset="-30" unit="day"/>
-        </tstamp>
+
         <delete>
             <fileset dir="${basedir}">
                 <include name="composer.phar" />
